@@ -21,12 +21,31 @@ namespace server
 
         bool terminating = false;
         bool listening = false;
-
+        Label[,] gameBoard = new Label[3, 3];
         public Form1()
         {
             Control.CheckForIllegalCrossThreadCalls = false;
             this.FormClosing += new FormClosingEventHandler(Form1_FormClosing);
             InitializeComponent();
+            InitializeGameBoard();
+        }
+
+        private void InitializeGameBoard()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    gameBoard[i, j] = new Label();
+                    gameBoard[i, j].Text = "";
+                    gameBoard[i, j].Location = new Point(10 + j * 100, 10 + i * 100);
+                    gameBoard[i, j].Size = new Size(100, 100);
+                    gameBoard[i, j].Font = new Font("Arial", 24, FontStyle.Bold);
+                    gameBoard[i, j].TextAlign = ContentAlignment.MiddleCenter;
+                    gameBoard[i, j].BorderStyle = BorderStyle.FixedSingle;
+                    this.Controls.Add(gameBoard[i, j]);
+                }
+            }
         }
 
         private void button_listen_Click(object sender, EventArgs e)
@@ -98,6 +117,28 @@ namespace server
                     string incomingMessage = Encoding.Default.GetString(buffer);
                     incomingMessage = incomingMessage.Substring(0, incomingMessage.IndexOf("\0"));
                     logs.AppendText("Client: " + incomingMessage + "\n");
+
+                    string[] messageParts = incomingMessage.Split(' ');
+
+                    if (messageParts[0] == "move")
+                    {
+                        int y = int.Parse(messageParts[1]);
+                        int x = int.Parse(messageParts[2]);
+
+                        if (string.IsNullOrEmpty(gameBoard[x,y].Text))
+                        {
+                            gameBoard[x, y].Text = "X";
+                            string validMoveMessage = "valid " + x + " " + y;
+                            Byte[] validBuffer = Encoding.Default.GetBytes(validMoveMessage);
+                            thisClient.Send(validBuffer);
+                        }
+                        else
+                        {
+                            string invalidMoveMessage = "invalid move";
+                            Byte[] invalidBuffer = Encoding.Default.GetBytes(invalidMoveMessage);
+                            thisClient.Send(invalidBuffer);
+                        }
+                    }
                 }
                 catch
                 {
