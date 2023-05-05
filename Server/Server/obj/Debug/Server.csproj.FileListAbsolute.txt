@@ -35,3 +35,13 @@ C:\Users\berkm\Source\Repos\CS408_TermProject\Server\Server\obj\Debug\Server.csp
 C:\Users\berkm\Source\Repos\CS408_TermProject\Server\Server\obj\Debug\Server.csproj.CoreCompileInputs.cache
 C:\Users\berkm\Source\Repos\CS408_TermProject\Server\Server\obj\Debug\server.exe
 C:\Users\berkm\Source\Repos\CS408_TermProject\Server\Server\obj\Debug\server.pdb
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\bin\Debug\server.exe.config
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\bin\Debug\server.exe
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\bin\Debug\server.pdb
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\obj\Debug\Server.csproj.AssemblyReference.cache
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\obj\Debug\server.Form1.resources
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\obj\Debug\server.Properties.Resources.resources
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\obj\Debug\Server.csproj.GenerateResource.cache
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\obj\Debug\Server.csproj.CoreCompileInputs.cache
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\obj\Debug\server.exe
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Server\Server\obj\Debug\server.pdb

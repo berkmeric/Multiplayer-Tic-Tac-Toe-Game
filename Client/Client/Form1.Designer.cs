@@ -37,6 +37,7 @@
             this.textBox_message = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.button_send = new System.Windows.Forms.Button();
+            this.button_playagain = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -44,17 +45,16 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(242, 458);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(22, 16);
+            this.label1.Size = new System.Drawing.Size(24, 17);
             this.label1.TabIndex = 0;
             this.label1.Text = "IP:";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(230, 496);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(34, 16);
+            this.label2.Size = new System.Drawing.Size(38, 17);
             this.label2.TabIndex = 1;
             this.label2.Text = "Port:";
             // 
@@ -73,7 +73,6 @@
             this.textBox_port.Name = "textBox_port";
             this.textBox_port.Size = new System.Drawing.Size(116, 22);
             this.textBox_port.TabIndex = 3;
-            this.textBox_port.TextChanged += new System.EventHandler(this.textBox_port_TextChanged);
             // 
             // button_connect
             // 
@@ -91,10 +90,10 @@
             this.logs.Location = new System.Drawing.Point(578, 22);
             this.logs.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.logs.Name = "logs";
+            this.logs.ReadOnly = true;
             this.logs.Size = new System.Drawing.Size(372, 596);
             this.logs.TabIndex = 5;
             this.logs.Text = "";
-            this.logs.TextChanged += new System.EventHandler(this.logs_TextChanged);
             // 
             // textBox_message
             // 
@@ -110,10 +109,9 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(12, 458);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(67, 16);
+            this.label3.Size = new System.Drawing.Size(69, 17);
             this.label3.TabIndex = 7;
             this.label3.Text = "Message:";
-            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // button_send
             // 
@@ -127,11 +125,24 @@
             this.button_send.UseVisualStyleBackColor = true;
             this.button_send.Click += new System.EventHandler(this.button_send_Click);
             // 
+            // button_playagain
+            // 
+            this.button_playagain.Enabled = false;
+            this.button_playagain.Location = new System.Drawing.Point(15, 571);
+            this.button_playagain.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.button_playagain.Name = "button_playagain";
+            this.button_playagain.Size = new System.Drawing.Size(87, 32);
+            this.button_playagain.TabIndex = 9;
+            this.button_playagain.Text = "play again";
+            this.button_playagain.UseVisualStyleBackColor = true;
+            this.button_playagain.Click += new System.EventHandler(this.button_playagain_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(962, 629);
+            this.Controls.Add(this.button_playagain);
             this.Controls.Add(this.button_send);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBox_message);
@@ -144,7 +155,6 @@
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "Form1";
             this.Text = "Form1";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -161,6 +171,7 @@
         private System.Windows.Forms.TextBox textBox_message;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button button_send;
+        private System.Windows.Forms.Button button_playagain;
     }
 }
 

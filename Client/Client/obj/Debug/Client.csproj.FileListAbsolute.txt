@@ -38,3 +38,13 @@ C:\Users\berkm\Source\Repos\CS408_TermProject\Client\Client\obj\Debug\Client.csp
 C:\Users\berkm\Source\Repos\CS408_TermProject\Client\Client\obj\Debug\Client.csproj.CoreCompileInputs.cache
 C:\Users\berkm\Source\Repos\CS408_TermProject\Client\Client\obj\Debug\client.exe
 C:\Users\berkm\Source\Repos\CS408_TermProject\Client\Client\obj\Debug\client.pdb
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\bin\Debug\client.exe.config
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\bin\Debug\client.exe
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\bin\Debug\client.pdb
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\obj\Debug\Client.csproj.AssemblyReference.cache
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\obj\Debug\client.Form1.resources
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\obj\Debug\client.Properties.Resources.resources
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\obj\Debug\Client.csproj.GenerateResource.cache
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\obj\Debug\Client.csproj.CoreCompileInputs.cache
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\obj\Debug\client.exe
+C:\Users\ander\OneDrive\Masaüstü\SU\402\CS408\Project\CS408_TermProject\Client\Client\obj\Debug\client.pdb

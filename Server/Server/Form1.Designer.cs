@@ -39,28 +39,27 @@
             // 
             // textBox_port
             // 
-            this.textBox_port.Location = new System.Drawing.Point(515, 43);
-            this.textBox_port.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_port.Location = new System.Drawing.Point(687, 53);
+            this.textBox_port.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.textBox_port.Name = "textBox_port";
-            this.textBox_port.Size = new System.Drawing.Size(138, 20);
+            this.textBox_port.Size = new System.Drawing.Size(183, 22);
             this.textBox_port.TabIndex = 0;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(467, 44);
-            this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label1.Location = new System.Drawing.Point(623, 54);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(29, 13);
+            this.label1.Size = new System.Drawing.Size(38, 17);
             this.label1.TabIndex = 1;
             this.label1.Text = "Port:";
             // 
             // button_listen
             // 
-            this.button_listen.Location = new System.Drawing.Point(661, 40);
-            this.button_listen.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_listen.Location = new System.Drawing.Point(881, 49);
+            this.button_listen.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button_listen.Name = "button_listen";
-            this.button_listen.Size = new System.Drawing.Size(56, 22);
+            this.button_listen.Size = new System.Drawing.Size(75, 27);
             this.button_listen.TabIndex = 2;
             this.button_listen.Text = "Listen";
             this.button_listen.UseVisualStyleBackColor = true;
@@ -68,39 +67,39 @@
             // 
             // logs
             // 
-            this.logs.Location = new System.Drawing.Point(469, 86);
-            this.logs.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.logs.Location = new System.Drawing.Point(625, 106);
+            this.logs.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.logs.Name = "logs";
-            this.logs.Size = new System.Drawing.Size(338, 171);
+            this.logs.ReadOnly = true;
+            this.logs.Size = new System.Drawing.Size(449, 210);
             this.logs.TabIndex = 3;
             this.logs.Text = "";
             // 
             // Label2
             // 
             this.Label2.AutoSize = true;
-            this.Label2.Location = new System.Drawing.Point(467, 286);
-            this.Label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.Label2.Location = new System.Drawing.Point(623, 352);
             this.Label2.Name = "Label2";
-            this.Label2.Size = new System.Drawing.Size(53, 13);
+            this.Label2.Size = new System.Drawing.Size(69, 17);
             this.Label2.TabIndex = 4;
             this.Label2.Text = "Message:";
             // 
             // textBox_message
             // 
             this.textBox_message.Enabled = false;
-            this.textBox_message.Location = new System.Drawing.Point(523, 286);
-            this.textBox_message.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_message.Location = new System.Drawing.Point(697, 352);
+            this.textBox_message.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.textBox_message.Name = "textBox_message";
-            this.textBox_message.Size = new System.Drawing.Size(216, 20);
+            this.textBox_message.Size = new System.Drawing.Size(287, 22);
             this.textBox_message.TabIndex = 5;
             // 
             // button_send
             // 
             this.button_send.Enabled = false;
-            this.button_send.Location = new System.Drawing.Point(747, 280);
-            this.button_send.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_send.Location = new System.Drawing.Point(996, 345);
+            this.button_send.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button_send.Name = "button_send";
-            this.button_send.Size = new System.Drawing.Size(59, 28);
+            this.button_send.Size = new System.Drawing.Size(79, 34);
             this.button_send.TabIndex = 6;
             this.button_send.Text = "send";
             this.button_send.UseVisualStyleBackColor = true;
@@ -108,9 +107,9 @@
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(906, 374);
+            this.ClientSize = new System.Drawing.Size(1208, 460);
             this.Controls.Add(this.button_send);
             this.Controls.Add(this.textBox_message);
             this.Controls.Add(this.Label2);
@@ -118,7 +117,7 @@
             this.Controls.Add(this.button_listen);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox_port);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
