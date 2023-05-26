@@ -51,7 +51,7 @@ namespace client
             string IP = textBox_ip.Text;
 
             int portNum;
-            if(Int32.TryParse(textBox_port.Text, out portNum))
+            if (Int32.TryParse(textBox_port.Text, out portNum))
             {
                 try
                 {
@@ -84,6 +84,46 @@ namespace client
                 logs.AppendText("Check the port\n");
             }
 
+        }
+
+        private string convertCoord(int num)
+        {
+            if (num == 1)
+            {
+                return "0 0";
+            }
+            else if (num == 2)
+            {
+                return "1 0";
+            }
+            else if (num == 3)
+            {
+                return "2 0";
+            }
+            else if (num == 4)
+            {
+                return "0 1";
+            }
+            else if (num == 5)
+            {
+                return "1 1";
+            }
+            else if (num == 6)
+            {
+                return "2 1";
+            }
+            else if (num == 7)
+            {
+                return "0 2";
+            }
+            else if (num == 8)
+            {
+                return "1 2";
+            }
+            else
+            {
+                return "2 2";
+            }
         }
 
         private void Receive()
@@ -130,7 +170,26 @@ namespace client
                     }
                     else if (incomingMessage == "rematch")
                     {
-                        logs.AppendText("Server: Your opponent requested a rematch. If you want to accept it please press the 'play again' button.");
+                        logs.AppendText("Server: Your opponent requested a rematch. If you want to accept it please press the 'play again' button.\n");
+                    }
+                    else if (incomingMessage == "welcomewait")
+                    {
+                        logs.AppendText("Server: Welcome, you are in queue for a game. Please wait...\n");
+                        string readyMessage = "activeMessage";
+                        Byte[] readyBuffer = Encoding.Default.GetBytes(readyMessage);
+                        clientSocket.Send(readyBuffer);
+                    }
+                    else if (incomingMessage == "opponentDisconnected")
+                    {
+                        logs.AppendText("Server: Your opponent was disconnected. Please wait until a new oppenent is connected...\n");
+                        button_send.Enabled = false;
+                        string readyMessage = "replacedReady";
+                        Byte[] readyBuffer = Encoding.Default.GetBytes(readyMessage);
+                        clientSocket.Send(readyBuffer);
+                    }
+                    else if (incomingMessage == "opponentConnected")
+                    {
+                        logs.AppendText("Server: A new opponent has connected.\n");
                     }
                     else
                     {
@@ -142,25 +201,57 @@ namespace client
                             Byte[] readyBuffer = Encoding.Default.GetBytes(readyMessage);
                             clientSocket.Send(readyBuffer);
                         }
+                        else if (messageParts[0] == "replace")
+                        {
+                            logs.AppendText("Server: A player has disconnected. You will be replacing them. You are " + messageParts[1] + ".\n");
+                            string readyMessage = "replacedReady " + messageParts[1];
+                            Byte[] readyBuffer = Encoding.Default.GetBytes(readyMessage);
+                            clientSocket.Send(readyBuffer);
+                        }
+                        else if (messageParts[0] == "playerwin")
+                        {
+                            string m = "Player " + messageParts[1] + " won the game.";
+                            logs.AppendText("Server: " + m + "\n");
+                        }
                         else if (messageParts[0] == "your")
                         {
                             string symbol = messageParts[1];
-                            int x = int.Parse(messageParts[3]);
-                            int y = int.Parse(messageParts[2]);
+                            int num = int.Parse(messageParts[2]);
+                            string[] coords = convertCoord(num).Split(' ');
+                            int x = int.Parse(coords[0]);
+                            int y = int.Parse(coords[1]);
 
                             gameBoardButtons[x, y].Text = symbol;
 
-                            logs.AppendText("Server: Your move " + x + ", " + y + " was valid.\n");
+                            logs.AppendText("Server: Your move " + num + " was valid.\n");
                         }
                         else if (messageParts[0] == "their")
                         {
                             string symbol = messageParts[1];
-                            int x = int.Parse(messageParts[3]);
-                            int y = int.Parse(messageParts[2]);
+                            int num = int.Parse(messageParts[2]);
+                            string[] coords = convertCoord(num).Split(' ');
+                            int x = int.Parse(coords[0]);
+                            int y = int.Parse(coords[1]);
 
                             gameBoardButtons[x, y].Text = symbol;
 
-                            logs.AppendText("Server: Your opponent has played " + x + ", " + y + ".\n");
+                            logs.AppendText("Server: Your opponent has played " + num + ".\n");
+                        }
+                        else if (messageParts[0] == "move")
+                        {
+                            string symbol = messageParts[1];
+                            int num = int.Parse(messageParts[2]);
+                            string[] coords = convertCoord(num).Split(' ');
+                            int x = int.Parse(coords[0]);
+                            int y = int.Parse(coords[1]);
+
+                            gameBoardButtons[x, y].Text = symbol;
+
+                            logs.AppendText("Server: A player has played " + num + ".\n");
+
+                            string readyMessage = "activeMessage";
+                            Byte[] readyBuffer = Encoding.Default.GetBytes(readyMessage);
+                            clientSocket.Send(readyBuffer);
                         }
                         else if (messageParts[0] == "Invalid")
                         {
@@ -211,7 +302,7 @@ namespace client
         {
             string message = textBox_message.Text;
 
-            if(message != "" && message.Length <= 64 && connected)
+            if (message != "" && message.Length <= 64 && connected)
             {
                 Byte[] buffer = Encoding.Default.GetBytes(message);
                 clientSocket.Send(buffer);
@@ -227,7 +318,35 @@ namespace client
 
             if (connected)
             {
-                string message = $"move {x} {y}";
+                string message = "";
+                if (y == 0)
+                {
+                    if (x == 0)
+                        message = "move 1"; //0 0
+                    if (x == 1)
+                        message = "move 2"; //1 0
+                    if (x == 2)
+                        message = "move 3"; //2 0
+
+                }
+                else if (y == 1)
+                {
+                    if (x == 0)
+                        message = "move 4"; //0 1
+                    if (x == 1)
+                        message = "move 5"; //1 1
+                    if (x == 2)
+                        message = "move 6"; //2 1
+                }
+                else if (y == 2)
+                {
+                    if (x == 0)
+                        message = "move 7";
+                    if (x == 1)
+                        message = "move 8";
+                    if (x == 2)
+                        message = "move 9";
+                }
                 textBox_message.Text = message;
             }
         }

@@ -21,10 +21,18 @@ namespace server
         List<String> clientSymbols = new List<String>() { "X", "O" };
         List<bool> clientsReady = new List<bool>();
 
+        List<Socket> waitlistSockets = new List<Socket>();
+        List<bool> waitlistUpdated = new List<bool>() { false, false };
+        List<String> moveList = new List<String>();
+
         bool gameOver = false;
+        bool gameOnGoing = false;
         bool activeTurn = false;
         bool terminating = false;
         bool listening = false;
+        bool activeMessage = false;
+        string replaced = "";
+        bool replacedReady = false;
         Label[,] gameBoard = new Label[3, 3];
         public Form1()
         {
@@ -56,7 +64,7 @@ namespace server
         {
             int serverPort;
 
-            if(Int32.TryParse(textBox_port.Text, out serverPort))
+            if (Int32.TryParse(textBox_port.Text, out serverPort))
             {
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, serverPort);
                 serverSocket.Bind(endPoint);
@@ -80,26 +88,58 @@ namespace server
 
         private void Accept()
         {
-            while(listening && clientSockets.Count != clientSymbols.Count)
+            while (listening)
             {
                 try
                 {
                     Socket newClient = serverSocket.Accept();
-                    clientSockets.Add(newClient);
-                    logs.AppendText("A client is connected.\n");
 
-                    string symbol;
+                    string symbol = "";
+                    string message = "";
 
-                    string message;
-                    if (clientSockets.Count == 1)
+                    if (clientSockets.Count < 2)
                     {
-                        message = "Welcome player 1. You are X!";
-                        symbol = "X";
+                        clientSockets.Add(newClient);
+                        logs.AppendText("A client is connected.\n");
+                        if (clientSockets.Count == 1)
+                        {
+                            message = "Welcome player 1. You are X!";
+                            symbol = "X";
+                        }
+                        else if (clientSockets.Count == 2)
+                        {
+                            message = "Welcome player 2. You are O!";
+                            symbol = "O";
+                        }
+                        Byte[] buffer = Encoding.Default.GetBytes(message);
+                        SendToClient(buffer, newClient);
+
+                        Thread receiveThread = new Thread(() => Receive(newClient, symbol));
+                        receiveThread.Start();
                     }
-                    else if (clientSockets.Count == 2)
+                    else if (waitlistSockets.Count < 2)
                     {
-                        message = "Welcome player 2. You are O!";
-                        symbol = "O";
+                        waitlistSockets.Add(newClient);
+                        logs.AppendText("A client is added to waitlist.\n");
+
+                        Thread receiveThread = new Thread(() => Receive(newClient, ""));
+                        receiveThread.Start();
+
+                        symbol = "";
+                        message = "welcomewait";
+                        activeMessage = true;
+                        Byte[] buffer2 = Encoding.Default.GetBytes(message);
+                        SendToClient(buffer2, newClient);
+
+                        while (activeMessage) { }
+
+                        foreach (string s in moveList)
+                        {
+                            activeMessage = true;
+                            buffer2 = Encoding.Default.GetBytes(s);
+                            SendToClient(buffer2, newClient);
+                            while (activeMessage) { }
+                        }
                     }
                     else
                     {
@@ -107,27 +147,19 @@ namespace server
                         symbol = "";
                     }
 
-                    if (message != "" && message.Length <= 64)
+                    if (clientSockets.Count == 2)
                     {
-                        Byte[] buffer = Encoding.Default.GetBytes(message);
-                        try
+                        if (gameOnGoing == false)
                         {
-                            newClient.Send(buffer);
-                        }
-                        catch
-                        {
-                            logs.AppendText("There is a problem! Check the connection...\n");
-                            terminating = true;
-                            textBox_message.Enabled = false;
-                            button_send.Enabled = false;
-                            textBox_port.Enabled = true;
-                            button_listen.Enabled = true;
-                            serverSocket.Close();
+                            while (clientsReady.Count != 2) { }
+                            if (clientsReady[0] == true && clientsReady[1] == true)
+                            {
+                                gameOnGoing = true;
+                                Thread gameThread = new Thread(() => StartGame());
+                                gameThread.Start();
+                            }
                         }
                     }
-
-                    Thread receiveThread = new Thread(() => Receive(newClient, symbol));
-                    receiveThread.Start();
                 }
                 catch
                 {
@@ -142,19 +174,53 @@ namespace server
 
                 }
             }
+        }
 
-            if (clientSockets.Count == clientSymbols.Count)
+        private void SendToAllClients(byte[] buffer)
+        {
+            for (int i = clientSockets.Count - 1; i >= 0; i--)
             {
-                while (clientsReady.Count != 2){}
-                if (clientsReady[0] == true && clientsReady[1] == true)
+                SendToClient(buffer, clientSockets[i]);
+            }
+
+            for (int i = waitlistSockets.Count - 1; i >= 0; i--)
+            {
+                SendToClient(buffer, waitlistSockets[i]);
+            }
+        }
+
+        private void SendToAllWatchers(byte[] buffer)
+        {
+            for (int i = waitlistSockets.Count - 1; i >= 0; i--)
+            {
+                SendToClient(buffer, waitlistSockets[i]);
+            }
+        }
+
+        private void SendToClient(byte[] buffer, Socket client)
+        {
+            if (client.Connected)
+            {
+                try
                 {
-                    StartGame();
+                    client.Send(buffer);
+                }
+                catch
+                {
+                    logs.AppendText("There is a problem! Check the connection...\n");
+                    terminating = true;
+                    textBox_message.Enabled = false;
+                    button_send.Enabled = false;
+                    textBox_port.Enabled = true;
+                    button_listen.Enabled = true;
+                    serverSocket.Close();
                 }
             }
         }
 
         private void StartGame()
         {
+            moveList.Clear();
             gameOver = false;
             for (int i = 0; i < 3; i++)
             {
@@ -167,27 +233,10 @@ namespace server
             logs.AppendText("The game is starting...\n");
             string startMessage = "The game is starting...";
             Byte[] startBuffer = Encoding.Default.GetBytes(startMessage);
-            foreach (Socket client in clientSockets)
-            {
-                try
-                {
-                    client.Send(startBuffer);
-                }
-                catch
-                {
-                    logs.AppendText("There is a problem! Check the connection...\n");
-                    terminating = true;
-                    textBox_message.Enabled = false;
-                    button_send.Enabled = false;
-                    textBox_port.Enabled = true;
-                    button_listen.Enabled = true;
-                    serverSocket.Close();
-                }
-
-            }
+            SendToAllClients(startBuffer);
 
             bool xTurn = true;
-            
+
             while (!gameOver)
             {
                 string playMessage = "play";
@@ -195,62 +244,63 @@ namespace server
                 string waitMessage = "wait";
                 Byte[] waitBuffer = Encoding.Default.GetBytes(waitMessage);
 
-                Socket XClient = clientSockets[0];
-                Socket OClient = clientSockets[1];
-
                 if (xTurn)
                 {
                     activeTurn = true;
-                    try
-                    {
-                        XClient.Send(playBuffer);
-                        OClient.Send(waitBuffer);
-                    }
-                    catch
-                    {
-                        logs.AppendText("There is a problem! Check the connection...\n");
-                        terminating = true;
-                        textBox_message.Enabled = false;
-                        button_send.Enabled = false;
-                        textBox_port.Enabled = true;
-                        button_listen.Enabled = true;
-                        serverSocket.Close();
-                    }
+                    SendToClient(playBuffer, clientSockets[0]);
+                    SendToClient(waitBuffer, clientSockets[1]);
                 }
                 else
                 {
                     activeTurn = true;
-                    try
-                    {
-                        OClient.Send(playBuffer);
-                        XClient.Send(waitBuffer);
-                    }
-                    catch
-                    {
-                        logs.AppendText("There is a problem! Check the connection...\n");
-                        terminating = true;
-                        textBox_message.Enabled = false;
-                        button_send.Enabled = false;
-                        textBox_port.Enabled = true;
-                        button_listen.Enabled = true;
-                        serverSocket.Close();
-                    }
+                    SendToClient(playBuffer, clientSockets[1]);
+                    SendToClient(waitBuffer, clientSockets[0]);
                 }
 
-                while (activeTurn) { }
+                while (activeTurn)
+                {
+                    if (replaced != "")
+                    {
+                        while (clientsReady[0] == false || clientsReady[1] == false) { }
+
+                        if (replaced == "X" && xTurn)
+                        {
+                            SendToClient(playBuffer, clientSockets[0]);
+                            SendToClient(waitBuffer, clientSockets[1]);
+                        }
+                        else if (replaced == "O" && !xTurn)
+                        {
+                            SendToClient(playBuffer, clientSockets[1]);
+                            SendToClient(waitBuffer, clientSockets[0]);
+                        }
+                        else if (replaced == "X" && !xTurn)
+                        {
+                            SendToClient(playBuffer, clientSockets[1]);
+                            SendToClient(waitBuffer, clientSockets[0]);
+                        }
+                        else if (replaced == "O" && xTurn)
+                        {
+                            SendToClient(playBuffer, clientSockets[0]);
+                            SendToClient(waitBuffer, clientSockets[1]);
+                        }
+                        replaced = "";
+                    }
+                }
 
                 if (isGameDraw())
                 {
                     logs.AppendText("Game ended in a draw.\n");
-                    gameOver = true;
+
                     string drawMessage = "draw";
                     Byte[] drawBuffer = Encoding.Default.GetBytes(drawMessage);
 
-                    XClient.Send(drawBuffer);
-                    OClient.Send(drawBuffer);
+                    SendToAllClients(drawBuffer);
 
                     clientsReady[0] = false;
                     clientsReady[1] = false;
+
+                    gameOver = true;
+                    gameOnGoing = false;
                 }
                 else if (isGameWon())
                 {
@@ -261,18 +311,29 @@ namespace server
                     if (xTurn)
                     {
                         logs.AppendText("Player 1 wins!\n");
-                        XClient.Send(winBuffer);
-                        OClient.Send(looseBuffer);
+                        SendToClient(winBuffer, clientSockets[0]);
+                        SendToClient(looseBuffer, clientSockets[1]);
+
+                        string watcherMessage = "playerwin 1";
+                        Byte[] watcherBuffer = Encoding.Default.GetBytes(watcherMessage);
+                        SendToAllWatchers(watcherBuffer);
                     }
                     else
                     {
                         logs.AppendText("Player 2 wins!\n");
-                        OClient.Send(winBuffer);
-                        XClient.Send(looseBuffer);
+                        SendToClient(winBuffer, clientSockets[1]);
+                        SendToClient(looseBuffer, clientSockets[0]);
+
+                        string watcherMessage = "playerwin 2";
+                        Byte[] watcherBuffer = Encoding.Default.GetBytes(watcherMessage);
+                        SendToAllWatchers(watcherBuffer);
                     }
-                    gameOver = true;
+
                     clientsReady[0] = false;
                     clientsReady[1] = false;
+
+                    gameOver = true;
+                    gameOnGoing = false;
                 }
 
                 xTurn = !xTurn;
@@ -352,11 +413,51 @@ namespace server
             return false;
         }
 
-        private void Receive(Socket thisClient, string symbol) // updated
+        private string convertCoord(int num)
+        {
+            if (num == 1)
+            {
+                return "0 0";
+            }
+            else if (num == 2)
+            {
+                return "1 0";
+            }
+            else if (num == 3)
+            {
+                return "2 0";
+            }
+            else if (num == 4)
+            {
+                return "0 1";
+            }
+            else if (num == 5)
+            {
+                return "1 1";
+            }
+            else if (num == 6)
+            {
+                return "2 1";
+            }
+            else if (num == 7)
+            {
+                return "0 2";
+            }
+            else if (num == 8)
+            {
+                return "1 2";
+            }
+            else
+            {
+                return "2 2";
+            }
+        }
+
+        private void Receive(Socket thisClient, string symbol)
         {
             bool connected = true;
 
-            while(connected && !terminating)
+            while (connected && !terminating)
             {
                 try
                 {
@@ -365,46 +466,12 @@ namespace server
 
                     string incomingMessage = Encoding.Default.GetString(buffer);
                     incomingMessage = incomingMessage.Substring(0, incomingMessage.IndexOf("\0"));
-                    logs.AppendText("Client: " + incomingMessage + "\n");
 
-                    string[] messageParts = incomingMessage.Split(' ');
-
-                    if (messageParts[0] == "move")
+                    if (incomingMessage == "activeMessage")
                     {
-                        int y = int.Parse(messageParts[1]);
-                        int x = int.Parse(messageParts[2]);
-
-                        if (string.IsNullOrEmpty(gameBoard[x,y].Text))
-                        {
-                            gameBoard[x, y].Text = symbol;
-                            string moveMessage1 = "your " + symbol + " " + x + " " + y;
-                            string moveMessage2 = "their " + symbol + " " + x + " " + y;
-                            Byte[] moveBuffer = Encoding.Default.GetBytes(moveMessage1);
-                            thisClient.Send(moveBuffer);
-
-                            foreach(Socket client in clientSockets)
-                            {
-                                if (client != thisClient)
-                                {
-                                    moveBuffer = Encoding.Default.GetBytes(moveMessage2);
-                                    client.Send(moveBuffer);
-                                }
-                            }
-
-                            activeTurn = false;
-                        }
-                        else
-                        {
-                            string invalidMoveMessage = "Invalid move try again";
-                            Byte[] invalidBuffer = Encoding.Default.GetBytes(invalidMoveMessage);
-                            thisClient.Send(invalidBuffer);
-                        }
+                        activeMessage = false;
                     }
-                    else if (messageParts[0] == "ready")
-                    {
-                        clientsReady.Add(true);
-                    }
-                    else if (messageParts[0] == "playagain")
+                    else if (incomingMessage == "replacedReady")
                     {
                         for (int i = 0; i < clientSockets.Count; i++)
                         {
@@ -413,43 +480,166 @@ namespace server
                                 clientsReady[i] = true;
                             }
                         }
+                    }
+                    else if (incomingMessage == "replacedReady X")
+                    {
+                        logs.AppendText("A player from the waitlist has entered the game.\n");
+                        while (clientsReady[1] == false) { }
+                        string connectedMessage = "opponentConnected";
+                        Byte[] connectedBuffer = Encoding.Default.GetBytes(connectedMessage);
+                        SendToClient(connectedBuffer, clientSockets[1]);
 
-                        if (clientsReady[0] && clientsReady[1])
+                        symbol = "X";
+
+                        for (int i = 0; i < clientSockets.Count; i++)
+                        {
+                            if (clientSockets[i] == thisClient)
+                            {
+                                clientsReady[i] = true;
+                            }
+                        }
+                    }
+                    else if (incomingMessage == "replacedReady O")
+                    {
+                        logs.AppendText("A player from the waitlist has entered the game.\n");
+                        while (clientsReady[0] == false) { }
+                        string connectedMessage = "opponentConnected";
+                        Byte[] connectedBuffer = Encoding.Default.GetBytes(connectedMessage);
+                        SendToClient(connectedBuffer, clientSockets[0]);
+
+                        symbol = "O";
+
+                        for (int i = 0; i < clientSockets.Count; i++)
+                        {
+                            if (clientSockets[i] == thisClient)
+                            {
+                                clientsReady[i] = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        logs.AppendText("Client: " + incomingMessage + "\n");
+
+                        string[] messageParts = incomingMessage.Split(' ');
+
+                        if (messageParts[0] == "move")
+                        {
+                            int num = int.Parse(messageParts[1]);
+
+                            string[] coords = convertCoord(num).Split(' ');
+
+                            int y = int.Parse(coords[0]);
+                            int x = int.Parse(coords[1]);
+
+                            if (string.IsNullOrEmpty(gameBoard[x, y].Text))
+                            {
+                                gameBoard[x, y].Text = symbol;
+                                string moveMessage1 = "your " + symbol + " " + num;
+                                string moveMessage2 = "their " + symbol + " " + num;
+                                string moveMessage3 = "move " + symbol + " " + num;
+                                moveList.Add(moveMessage3);
+                                Byte[] moveBuffer = Encoding.Default.GetBytes(moveMessage1);
+                                thisClient.Send(moveBuffer);
+
+                                foreach (Socket client in clientSockets)
+                                {
+                                    if (client != thisClient)
+                                    {
+                                        moveBuffer = Encoding.Default.GetBytes(moveMessage2);
+                                        client.Send(moveBuffer);
+                                    }
+                                }
+
+                                moveBuffer = Encoding.Default.GetBytes(moveMessage3);
+                                SendToAllWatchers(moveBuffer);
+
+                                activeTurn = false;
+                            }
+                            else
+                            {
+                                string invalidMoveMessage = "Invalid move try again";
+                                Byte[] invalidBuffer = Encoding.Default.GetBytes(invalidMoveMessage);
+                                thisClient.Send(invalidBuffer);
+                            }
+                        }
+                        else if (messageParts[0] == "ready")
+                        {
+                            clientsReady.Add(true);
+                        }
+                        else if (messageParts[0] == "playagain")
                         {
                             for (int i = 0; i < clientSockets.Count; i++)
                             {
-                                Socket client = clientSockets[i];
-                                string s = clientSymbols[i];
-                                Thread receiveThread = new Thread(() => Receive(client, s));
-                                receiveThread.Start();
+                                if (clientSockets[i] == thisClient)
+                                {
+                                    clientsReady[i] = true;
+                                }
                             }
 
-                            StartGame();
-                        }
-                        else if (!clientsReady[0] && clientsReady[1])
-                        {
-                            Socket c = clientSockets[0];
-                            string rematchMessage = "rematch";
-                            Byte[] rematchBuffer = Encoding.Default.GetBytes(rematchMessage);
-                            c.Send(rematchBuffer);
-                        }
-                        else if (clientsReady[0] && !clientsReady[1])
-                        {
-                            Socket c = clientSockets[1];
-                            string rematchMessage = "rematch";
-                            Byte[] rematchBuffer = Encoding.Default.GetBytes(rematchMessage);
-                            c.Send(rematchBuffer);
+                            if (clientsReady[0] && clientsReady[1])
+                            {
+                                for (int i = 0; i < clientSockets.Count; i++)
+                                {
+                                    Socket client = clientSockets[i];
+                                    string s = clientSymbols[i];
+                                    Thread receiveThread = new Thread(() => Receive(client, s));
+                                    receiveThread.Start();
+                                }
+
+                                StartGame();
+                            }
+                            else if (!clientsReady[0] && clientsReady[1])
+                            {
+                                Socket c = clientSockets[0];
+                                string rematchMessage = "rematch";
+                                Byte[] rematchBuffer = Encoding.Default.GetBytes(rematchMessage);
+                                c.Send(rematchBuffer);
+                            }
+                            else if (clientsReady[0] && !clientsReady[1])
+                            {
+                                Socket c = clientSockets[1];
+                                string rematchMessage = "rematch";
+                                Byte[] rematchBuffer = Encoding.Default.GetBytes(rematchMessage);
+                                c.Send(rematchBuffer);
+                            }
                         }
                     }
+
+
                 }
                 catch
                 {
-                    if(!terminating)
+                    if (!terminating)
                     {
                         logs.AppendText("A client has disconnected\n");
                     }
+
+                    if (waitlistSockets.Count > 0)
+                    {
+                        for (int i = 0; i < clientSockets.Count; i++)
+                        {
+                            if (clientSockets[i] == thisClient)
+                            {
+                                clientsReady[i] = false;
+                                replaced = symbol;
+                                clientSockets.RemoveAt(i);
+                                clientSockets.Insert(i, waitlistSockets[0]);
+                                waitlistSockets.RemoveAt(0);
+                                string replaceMessage = "replace " + symbol;
+                                Byte[] replaceBuffer = Encoding.Default.GetBytes(replaceMessage);
+                                SendToClient(replaceBuffer, clientSockets[i]);
+                            }
+                            else
+                            {
+                                clientsReady[i] = false;
+                                string opponentMessage = "opponentDisconnected";
+                                Byte[] opponentBuffer = Encoding.Default.GetBytes(opponentMessage);
+                                SendToClient(opponentBuffer, clientSockets[i]);
+                            }
+                        }
+                    }
                     thisClient.Close();
-                    clientSockets.Remove(thisClient);
                     connected = false;
                 }
             }
@@ -465,7 +655,7 @@ namespace server
         private void button_send_Click(object sender, EventArgs e)
         {
             string message = textBox_message.Text;
-            if(message != "" && message.Length <= 64)
+            if (message != "" && message.Length <= 64)
             {
                 Byte[] buffer = Encoding.Default.GetBytes(message);
                 foreach (Socket client in clientSockets)
